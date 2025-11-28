@@ -1,0 +1,10 @@
+dbt-core==1.10.15
+dbt-bigquery==1.10.3
+
+# Open-metadata integration
+# openmetadata-ingestion[bigquery]==1.10.5
+# openmetadata-ingestion[airflow]==1.10.5
+# openmetadata-ingestion[dbt]==1.10.5
+# openmetadata-managed-apis==1.10.5
+
+elementary-data==0.20.0

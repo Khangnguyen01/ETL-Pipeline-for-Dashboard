@@ -1,0 +1,171 @@
+﻿########################
+# 1. DBT / ANALYTICS   #
+########################
+
+# dbt build artifacts
+target/
+dbt_packages/
+logs/
+dbt.log
+
+# dbt metadata (thường nằm trong target/, nhưng thêm cho chắc)
+manifest.json
+run_results.json
+
+# Elementary / data quality reports
+edr_target/
+
+# Local profiles & user config (tuỳ bạn có commit hay không)
+profiles.yml
+.user.yml
+
+
+########################
+# 2. PYTHON PROJECT    #
+########################
+
+# Bytecode & cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Build artifacts
+build/
+dist/
+.eggs/
+*.egg-info/
+pip-wheel-metadata/
+
+# Compiled extensions
+*.so
+*.pyd
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+.venv.bak/
+
+# Poetry / pipenv (tuỳ dùng)
+.poetry-cache/
+pipenv.env
+
+
+########################
+# 3. ENV / SECRETS     #
+########################
+
+# Generic env files
+.env
+.env.*
+*.env
+
+# Credentials (đừng dùng pattern *.json để khỏi ignore nhầm)
+*credentials*.json
+*secret*.json
+*service_account*.json
+*.pem
+*.key
+*.p12
+
+
+########################
+# 4. AIRFLOW           #
+########################
+
+# Airflow metadata & logs
+airflow.cfg
+airflow.db
+airflow.db-journal
+logs/
+dag_generated_configs/
+
+
+########################
+# 5. JUPYTER / NOTEBOOKS
+########################
+
+.ipynb_checkpoints/
+*.nbconvert.ipynb
+
+
+########################
+# 6. DATA / TEMP FILES #
+########################
+
+# Raw / temp data folders
+data/
+data_raw/
+data_tmp/
+tmp/
+temp/
+
+# Structured data files (tuỳ nếu bạn KHÔNG muốn track bất kỳ file data nào)
+*.csv
+*.tsv
+*.parquet
+*.feather
+*.orc
+*.avro
+
+# Excel
+*.xlsx
+*.xls
+*.xlsm
+
+# Pickle / binary
+*.pkl
+*.pickle
+
+# Dumps / backups
+*.bak
+*.old
+*.tmp
+
+
+########################
+# 7. IDE / EDITOR      #
+########################
+
+# VS Code
+.vscode/
+
+# PyCharm / IntelliJ
+.idea/
+*.iml
+
+# Others
+*.swp
+*.swo
+*~
+*.code-workspace
+
+
+########################
+# 8. OS-SPECIFIC       #
+########################
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Others
+*.log
+
+
+########################
+# 9. USER-SPECIFIC     #
+########################
+
+# Any personal scripts / scratch
+scratch/
+notes/

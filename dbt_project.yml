@@ -1,0 +1,229 @@
+
+# Name your project! Project names should contain only lowercase characters
+# and underscores. A good package name should reflect your organization's
+# name or the intended use of these models
+name: 'dbt_dev'
+version: '1.0.0'
+
+# This setting configures which "profile" dbt uses for this project.
+profile: 'dbt_dev'
+
+# These configurations specify where dbt should look for different types of files.
+# The `model-paths` config, for example, states that models in this project can be
+# found in the "models/" directory. You probably won't need to change these!
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+clean-targets:         # directories to be removed by `dbt clean`
+  - "target"
+  - "dbt_packages"
+
+query-comment:
+  comment: "{{ query_comment(node) }}"
+  job-label: true
+
+# Configuring models
+# Full documentation: https://docs.getdbt.com/docs/configuring-models
+
+# In this example config, we tell dbt to build all models in the example/
+# directory as views. These settings can be overridden in the individual model
+# files using the `{{ config(...) }}` macro.
+models:
+  dbt_dev:
+    staging:
+        +materialized: incremental
+        +schema: "staging"
+    mart:
+        +materialized: table
+        +schema: "mart"
+    monitoring:
+      +schema: monitoring
+
+  elementary:
+    +schema: elementary
+
+vars:
+  mart_config:
+    target_date_column: event_date
+    target_user_column: user_pseudo_id
+    mart_overview:
+      - name: ad_impression
+        source_layer: staging
+        has_pivot: false
+        value_fields: [ event_timestamp, value ]
+        agg_functions: [ COUNT, SUM ]
+
+      - name: af_rewarded
+        source_layer: staging
+        has_pivot: false
+        value_fields: [ event_timestamp ]
+        agg_functions: [ COUNT ]
+
+      - name: af_inters
+        source_layer: staging
+        has_pivot: false
+        value_fields: [ event_timestamp ]
+        agg_functions: [ COUNT ]
+
+      - name: in_app_purchase
+        source_layer: staging
+        has_pivot: false
+        value_fields: [event_timestamp, event_value_in_usd]
+        agg_functions: [COUNT, SUM]
+
+      - name: first_open
+        source_layer: staging
+        has_pivot: false
+        value_fields: [event_timestamp]
+        agg_functions: [COUNT]
+
+      - name: screen_view
+        source_layer: staging
+        has_pivot: false
+        value_fields: [engagement_time_msec]
+        agg_functions: [SUM]
+
+      - name: app_exception
+        source_layer: staging
+        has_pivot: false
+        value_fields: [engagement_time_msec]
+        agg_functions: [SUM]
+
+      - name: user_engagement
+        source_layer: staging
+        has_pivot: false
+        value_fields: [engagement_time_msec]
+        agg_functions: [SUM]
+
+      - name: end_level
+        source_layer: staging
+        has_pivot: false
+        value_fields: [level]
+        agg_functions: [MAX]
+
+      - name: session_start
+        source_layer: staging
+        has_pivot: false
+        value_fields: [ga_session_id]
+        agg_functions: [COUNT DISTINCT]
+
+    mart_level_analyst:
+      - name: end_level
+        source_layer: staging
+        value_fields: [event_timestamp, percentage, result]
+        conditions:
+          - field: result
+            value: 'win'
+            agg_function: MAX
+            agg_field: event_timestamp
+            alias: win_ts
+          - field: result
+            value: 'lose'
+            agg_function: MAX
+            agg_field: event_timestamp
+            alias: lose_ts
+          - field: result
+            value: 'lose'
+            agg_function: AVG
+            agg_field: percentage
+            alias: percentage_lose
+          - field: result
+            value: 'win'
+            agg_function: AVG
+            agg_field: play_duration
+            alias: play_duration_win
+          - agg_function: SUM
+            agg_field: play_duration
+            alias: play_duration
+
+      - name: revive_level
+        source_layer: staging
+        value_fields: [event_timestamp, percentage]
+        agg_functions: [COUNT, AVG]
+        aliases: [revive_count, percentage_lose_revive]
+
+      - name: booster_use
+        source_layer: staging
+        value_fields: [event_timestamp]
+        agg_functions: [COUNT]
+        aliases: [booster_use]
+
+      - name: booster_buy
+        source_layer: staging
+        value_fields: [event_timestamp]
+        agg_functions: [COUNT]
+        aliases: [booster_buy]
+
+      - name: app_remove
+        source_layer: staging
+        value_fields: [event_timestamp]
+        agg_functions: [COUNT]
+        aliases: [app_remove]
+
+      - name: ad_impression
+        source_layer: staging
+        value_fields: [value]
+        agg_functions: [SUM]
+        aliases: [ad_revenue]
+
+      - name: in_app_purchase
+        source_layer: staging
+        value_fields: [event_value_in_usd, event_timestamp]
+        agg_functions: [SUM, COUNT]
+        aliases: [iap_revenue, iap_count]
+
+      - name: af_rewarded
+        source_layer: staging
+        value_fields: [event_timestamp]
+        agg_functions: [COUNT]
+        aliases: [af_rewarded]
+
+    mart_seq_drop:
+      - name: ad_show
+        event_params: ['placement', 'ad_format', 'is_show']
+      - name: app_exception
+        event_params: ['fatal']
+      - name: booster_buy
+        event_params: ['booster_type', 'buy_type']
+      - name: booster_use
+        event_params: ['level', 'booster_type']
+      - name: end_level
+        event_params: ['level', 'level_type', 'model_type']
+      - name: exit_level
+        event_params: ['level', 'level_type', 'model_type']
+      - name: in_app_purchased
+        event_params: ['level', 'placement', 'product_name']
+      - name: loading_start
+        event_params: ['placement']
+      - name: loading_finish
+        event_params: ['placement', 'is_load']
+      - name: popup_show
+        event_params: ['level', 'popup_type', 'popup_name']
+      - name: queue_danger
+        event_params: ['level', 'model_type', 'level_type']
+      - name: resource_gain
+        event_params: ['level', 'placement', 'resource_type', 'resource_gain_source']
+      - name: resource_spend
+        event_params: ['level', 'resource_name']
+      - name: revive_level
+        event_params: ['level', 'revive_method']
+      - name: session_start
+        event_params: []
+      - name: start_level
+        event_params: ['level', 'level_type', 'model_type']
+      - name: time_load_open_app
+        event_params: []
+      - name: tutorial_complete
+        event_params: ['level', 'tutorial_type', 'tutorial_name']
+      - name: tutorial_show
+        event_params: ['level', 'tutorial_type', 'tutorial_name']
+
+
+
+
+
+

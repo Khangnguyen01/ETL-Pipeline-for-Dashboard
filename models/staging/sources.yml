@@ -1,0 +1,91 @@
+sources:
+  - name: raw_events
+    description: "Raw events data from firebase into BigQuery"
+    database: wool-away
+    schema: analytics_488680245
+    tables:
+      - name: event_intraday
+        description: "Source events data, partitioned by date_par"
+        identifier: "events_intraday_*"
+        columns:
+          - name: user_pseudo_id
+            description: "user id"
+            tests:
+              - not_null
+          - name: date_par
+            description: "Event date partition"
+          - name: event_name
+            description: "Events name"
+          - name: event_timestamp
+            description: "Event timestamp"
+          - name: event_params
+            description: "Event parameters, both default and custom"
+          - name: user_properties
+            description: "User properties"
+
+  - name: silver
+    description: "Silver layer with cleaned data"
+    database: wool-away
+    schema: dev_staging
+    tables:
+      - name: silver
+        description: "Woolaway events data, partitioned and clustered"
+        identifier: "silver"
+        columns:
+          - name: user_pseudo_id_hashed
+            description: "User ID have been hashed"
+            tests:
+              - not_null
+          - name: event_date
+            description: "Event date"
+          - name: event_name
+            description: "Events name"
+          - name: event_timestamp
+            description: "Event timestamp"
+          - name: event_value_in_usd
+            description: "Event value in USD"
+          - name: version
+            description: "App version"
+          - name: country
+            description: "User country"
+          - name: continent
+            description: "User continent"
+          - name: region
+            description: "User region"
+          - name: sub_continent
+            description: "User sub-continent"
+          - name: platform
+            description: "Platform (Android or iOS)"
+          - name: mobile_brand_name
+            description: "Mobile brand name"
+          - name: mobile_model_name
+            description: "Mobile model name"
+          - name: advertising_id
+            description: "ID to map to AppsFlyer data"
+          - name: time_zone_offset_seconds
+            description: "User timezone offset in seconds"
+          - name: event_params
+            description: "Event parameters (JSON)"
+          - name: user_properties
+            description: "User properties (JSON)"
+
+  - name: campaign_data
+    description: "Campaign data from AppsFlyer into BigQuery"
+    database: adone-appsflyer
+    schema: audience
+    tables:
+      - name: appsflyer_ads_unit
+        description: "Source campaign data"
+        columns:
+          - name: id
+            description: "id, map to advertising_id in raw data"
+          - name: idfa
+            description: "second id column, map to advertising_id in raw data"
+          - name: media_source
+            description: "Media source"
+          - name: campaign
+            description: "Campaign name"
+          - name: af_ad
+            description: "Creative id"
+          - name: af_adset
+            description: "Second creative id"

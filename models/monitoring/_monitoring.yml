@@ -1,0 +1,7 @@
+version: 2
+
+models:
+  - name: bigquery_jobs
+    description: |
+      BigQuery cost tables containing detailed job-level cost and usage metrics, breakdown by job attributes.
+      Use this for executive dashboards and daily cost monitoring.
