@@ -5,7 +5,7 @@
 {{
   config(
     materialized='incremental',
-    unique_key=['user_pseudo_id_hashed', 'event_name', 'event_timestamp'],
+    unique_key=['user_pseudo_id_hashed', 'event_name'],
     partition_by={
       'field': 'event_date',
       'data_type': 'date',
@@ -30,7 +30,9 @@ WITH iap_event AS (
     placement,
     pack_name,
     trigger_show_type,
-    show_type
+    show_type,
+    null AS level,
+    null AS revenue
   FROM {{ ref('stg_iap_buy_click') }}
   WHERE 1=1
     {% if is_incremental() %}
@@ -55,7 +57,9 @@ WITH iap_event AS (
     placement,
     REPLACE(pack_name, ',', '') AS pack_name,
     trigger_show_type,
-    show_type
+    show_type,
+    null AS level,
+    null AS revenue
   FROM {{ ref('stg_iap_show') }}
   WHERE 1=1
     {% if is_incremental() %}
@@ -80,7 +84,9 @@ WITH iap_event AS (
     s1.placement,
     s2.product_name AS pack_name,
     s1.trigger_show_type,
-    s1.show_type
+    s1.show_type,
+    s1.level,
+    s1.revenue
   FROM {{ ref('stg_iap_purchased') }} s1
   LEFT JOIN (
     SELECT DISTINCT product_name, package_id
@@ -91,13 +97,38 @@ WITH iap_event AS (
     {% if is_incremental() %}
         {% if is_backfill == 'true' %}
             {# BACKFILL: Load specific partition #}
-            AND s1.event_date BETWEEN DATE('{{ start_date }}') AND DATE('{{ end_date }}')
+            AND event_date BETWEEN DATE('{{ start_date }}') AND DATE('{{ end_date }}')
         {% else %}
             {# SINGLE RUN / SCHEDULED: Incremental from MAX #}
             AND s1.event_date > (SELECT MAX(event_date) FROM {{ this }})
             AND s1.event_date <= CURRENT_DATE()-1
         {% endif %}
     {% endif %}
+)
+, iap_event_group AS (
+SELECT
+    s1.event_date,
+    s1.user_pseudo_id_hashed,
+    s1.event_name,
+    s1.version,
+    s1.placement,
+    s1.pack_name,
+    s1.trigger_show_type,
+    s1.show_type,
+    COUNT(s1.event_timestamp) AS event_count,
+    SUM(s1.revenue) AS total_revenue,
+    MIN(s1.level) OVER(PARTITION BY s1.user_pseudo_id_hashed) AS first_level_purchased
+FROM iap_event s1
+GROUP BY
+    s1.event_date,
+    s1.user_pseudo_id_hashed,
+    s1.event_name,
+    s1.version,
+    s1.placement,
+    s1.pack_name,
+    s1.trigger_show_type,
+    s1.show_type,
+    s1.level
 )
 
 , user_detail AS (
@@ -108,10 +139,10 @@ WITH iap_event AS (
     s2.platform,
     s2.mobile_brand_name,
     s2.mobile_model_name
-  FROM iap_event s1
+  FROM iap_event_group s1
   LEFT JOIN {{ ref('stg_first_open') }} s2
     ON s1.user_pseudo_id_hashed = s2.user_pseudo_id_hashed
-  QUALIFY ROW_NUMBER() OVER(PARTITION BY s1.user_pseudo_id_hashed, s1.event_timestamp ORDER BY s1.event_timestamp DESC) = 1
+  QUALIFY ROW_NUMBER() OVER(PARTITION BY s2.user_pseudo_id_hashed ORDER BY s2.event_timestamp DESC) = 1
 )
 
 SELECT
