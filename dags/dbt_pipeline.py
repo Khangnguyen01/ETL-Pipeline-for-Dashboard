@@ -103,13 +103,12 @@ with DAG(
         python_callable=get_dbt_vars,
     )
 
-    # Task 3: Run staging models (excluding silver, user_campaign, user_demographic)
+    # Task 3: Run staging models
     dbt_run_staging = BashOperator(
         task_id="dbt_run_staging",
         bash_command="""
             cd /opt/airflow/dbt
-            dbt run --select stg_first_open \
-            --vars '{{ ti.xcom_pull(task_ids="get_dbt_vars") }}'
+            dbt run --select staging.* --vars '{{ ti.xcom_pull(task_ids="get_dbt_vars") }}'
         """,
     )
 
