@@ -4,14 +4,33 @@ This document provides step-by-step instructions for configuring the dbt project
 
 ---
 
+## 🚀 Docker Setup (Recommended)
+
+**For most users, you only need:**
+1. ✅ Docker Desktop installed
+2. ✅ `application_default_credentials.json` (GCP service account key)
+3. ✅ Update `project:` in `profiles.yml`
+4. ✅ Run `docker-compose up -d`
+
+**See [QUICKSTART.md](./QUICKSTART.md) for 3-step setup!**
+
+---
+
 ## 📋 Quick Configuration Checklist
 
+### Docker Setup (Recommended)
+- [ ] Install Docker Desktop
+- [ ] Add `application_default_credentials.json`
+- [ ] Update `profiles.yml` with GCP project ID
+- [ ] (Optional) Create `.env` file
+- [ ] Run `docker-compose up -d`
+
+### Local Development Setup (Optional)
 - [ ] Install Python dependencies
 - [ ] Set up Google Cloud credentials
-- [ ] Configure dbt profiles
+- [ ] Configure `~/.dbt/profiles.yml`
 - [ ] Install dbt packages
 - [ ] Test connection
-- [ ] (Optional) Set up Airflow
 
 ---
 

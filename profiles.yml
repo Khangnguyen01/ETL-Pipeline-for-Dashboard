@@ -1,0 +1,32 @@
+﻿﻿# ===================================
+# profiles.yml - dbt BigQuery Connection
+# ===================================
+#
+# ⚠️  IMPORTANT: Update the 'project' field below with YOUR GCP project ID
+#
+# This file is used by Docker/Airflow to connect to BigQuery
+# The credentials file path is already configured for Docker
+#
+# ===================================
+
+dbt_dev:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: oauth
+
+      # ⚠️  CHANGE THIS to your GCP project ID
+      # Example: my-analytics-project-123456
+      project: wool-away  # ← UPDATE THIS
+
+      # Target dataset and settings (usually don't need to change)
+      dataset: dev
+      location: US
+      threads: 8
+      timeout_seconds: 6000
+      job_retries: 1
+      priority: interactive
+      # Use OAuth with application default credentials
+      keyfile: /home/airflow/.config/gcloud/application_default_credentials.json
+      job_execution_timeout: 6000

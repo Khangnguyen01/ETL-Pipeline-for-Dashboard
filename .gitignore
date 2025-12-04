@@ -1,18 +1,36 @@
 ﻿# ===================================
 # DBT Project .gitignore
 # ===================================
+#
+# This file protects sensitive credentials and generated files
+# from being committed to Git
+#
+# ===================================
 
 # ====================
-# SENSITIVE FILES - DO NOT COMMIT
+# 🔒 SENSITIVE FILES - NEVER COMMIT THESE
 # ====================
 
-# Google Cloud credentials
+# Google Cloud credentials (SERVICE ACCOUNT KEYS)
 application_default_credentials.json
 **/application_default_credentials.json
+*-credentials.json
+*_credentials.json
+
+# Service account keys (various patterns)
+*-key.json
+*_key.json
+service-account*.json
+sa-*.json
+
+# Exclude all JSON except specific config files
 *.json
 !packages.yml
 !package-lock.yml
 !dbt_project.yml
+!package.json
+!package-lock.json
+!.vscode/*.json
 
 # Service account keys
 *-key.json
@@ -25,8 +43,11 @@ service-account*.json
 .env.*.local
 *.env
 
-# dbt profiles (contains credentials)
-profiles.yml
+# dbt profiles - local development overrides
+# Note: profiles.yml in project root is committed as template
+# Users should update project ID before running
+~/.dbt/profiles.yml
+profiles_local.yml
 profiles_docker.yml
 
 # SSH keys
