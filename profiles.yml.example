@@ -1,0 +1,124 @@
+# ===================================
+# dbt Profile Configuration Template
+# ===================================
+#
+# INSTRUCTIONS:
+# 1. Copy this file to ~/.dbt/profiles.yml
+#    - Windows: C:\Users\YourUsername\.dbt\profiles.yml
+#    - Mac/Linux: ~/.dbt/profiles.yml
+#
+# 2. Replace ALL_CAPS placeholders with your actual values
+#
+# 3. Choose authentication method (oauth or service-account)
+#
+# 4. DO NOT commit the actual profiles.yml to Git
+#
+# ===================================
+
+dbt_dev:
+  target: dev  # Default target when running dbt commands
+
+  outputs:
+    # ===================================
+    # DEVELOPMENT ENVIRONMENT
+    # ===================================
+    dev:
+      type: bigquery
+
+      # Authentication Method (choose one):
+      # - oauth: Use gcloud auth (recommended for local dev)
+      # - service-account: Use JSON key file (recommended for CI/CD)
+      method: oauth  # ← CHANGE to 'service-account' if using key file
+
+      # GCP Configuration
+      project: YOUR_GCP_PROJECT_ID  # ← REQUIRED: Your GCP project ID
+      dataset: dev                   # ← Target dataset for dev environment
+      location: US                   # ← BigQuery location (US, EU, asia-northeast1, etc.)
+
+      # Performance Settings
+      threads: 8                     # Parallel threads for dbt operations
+      timeout_seconds: 6000          # Query timeout (100 minutes)
+      job_retries: 1                 # Retry failed jobs once
+      priority: interactive          # Query priority (interactive or batch)
+      job_execution_timeout: 6000    # Job execution timeout
+
+      # Service Account Key (only if method: service-account)
+      # Uncomment and set path if using service account:
+      # keyfile: /absolute/path/to/application_default_credentials.json
+
+      # Optional: Maximum bytes billed (cost control)
+      # maximum_bytes_billed: 1000000000  # 1GB limit
+
+    # ===================================
+    # STAGING ENVIRONMENT
+    # ===================================
+    staging:
+      type: bigquery
+      method: service-account  # Usually use service account for non-dev
+      project: YOUR_GCP_PROJECT_ID  # ← REQUIRED
+      dataset: staging               # ← Target dataset
+      location: US
+      threads: 8
+      timeout_seconds: 6000
+      priority: interactive
+      keyfile: /absolute/path/to/staging-service-account.json  # ← Set path
+
+    # ===================================
+    # PRODUCTION ENVIRONMENT
+    # ===================================
+    prod:
+      type: bigquery
+      method: service-account
+      project: YOUR_GCP_PROJECT_ID  # ← REQUIRED
+      dataset: prod                  # ← Target dataset
+      location: US
+      threads: 8
+      timeout_seconds: 6000
+      priority: batch                # Use batch for prod (cheaper)
+      keyfile: /absolute/path/to/prod-service-account.json  # ← Set path
+
+      # Additional prod settings
+      job_retries: 2                 # More retries for prod
+      maximum_bytes_billed: 10000000000  # 10GB limit for safety
+
+# ===================================
+# AUTHENTICATION SETUP GUIDE
+# ===================================
+#
+# Option 1: OAuth (Local Development)
+# ------------------------------------
+# 1. Install gcloud CLI: https://cloud.google.com/sdk/docs/install
+# 2. Run: gcloud auth application-default login
+# 3. Set method: oauth in profile
+# 4. No keyfile needed
+#
+# Option 2: Service Account (CI/CD & Production)
+# -----------------------------------------------
+# 1. Create service account in GCP Console
+# 2. Grant roles:
+#    - BigQuery Data Editor
+#    - BigQuery Job User
+#    - BigQuery Read Session User
+# 3. Download JSON key
+# 4. Set method: service-account
+# 5. Set keyfile: /path/to/key.json
+# 6. Keep key file secure (never commit!)
+#
+# ===================================
+# COMMON CONFIGURATION VALUES
+# ===================================
+#
+# Locations:
+#   US, EU, asia-northeast1, us-central1, europe-west1, etc.
+#
+# Priority:
+#   - interactive: Fast queries, higher cost
+#   - batch: Slower queue, lower cost (good for prod)
+#
+# Threads:
+#   - 1-4: Small projects
+#   - 4-8: Medium projects (recommended)
+#   - 8-16: Large projects with many models
+#
+# ===================================
+
