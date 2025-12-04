@@ -16,6 +16,8 @@
   )
 }}
 
+{%- set event_configs = var('mart_config').mart_firebase -%}
+
 WITH unnest_data AS (
 SELECT
     event_date,
@@ -86,22 +88,21 @@ WHERE 1=1
     {% endif %}
 GROUP BY ALL
 )
+{%- for event_config in event_configs -%}
+, {{ event_config.name }}_wide AS (
+  {{ generate_wide_table_for_firebase(event_config, event_config.source_layer, apply_date_filter=is_incremental()) }}
+)
+{%- endfor %}
+
 SELECT
-    s1.*,
-    COUNT(CASE WHEN ad_formats2.event_timestamp) AS total_attempts,
-FROM total_attempt AS s1
-LEFT JOIN {{ ref('stg_af_rewarded') }} AS s2
-    ON s1.user_pseudo_id_hashed = s2.user_pseudo_id_hashed
-    AND s1.event_date = s2.event_date
-WHERE 1=1
-    {% if is_incremental() %}
-        {% if is_backfill == 'true' %}
-            {# BACKFILL: Load specific partition #}
-            AND s2.event_date BETWEEN DATE('{{ start_date }}') AND DATE('{{ end_date }}')
-        {% else %}
-            {# SINGLE RUN / SCHEDULED: Incremental from MAX #}
-            AND s2.event_date > (SELECT MAX(event_date) FROM {{ this }})
-            AND s2.event_date <= CURRENT_DATE()-1
-        {% endif %}
-    {% endif %}
-GROUP BY ALL
+  s1.*
+  {%- for event_config in event_configs -%}
+  , {{ event_config.name }}_wide.* EXCEPT (user_pseudo_id_hashed, event_date, version)
+  {%- endfor %}
+FROM total_attempt s1
+{%- for event_config in event_configs %}
+LEFT JOIN {{ event_config.name }}_wide
+  ON s1.user_pseudo_id_hashed = {{ event_config.name }}_wide.user_pseudo_id_hashed
+  AND s1.event_date = {{ event_config.name }}_wide.event_date
+  AND s1.version = {{ event_config.name }}_wide.version
+{%- endfor %}

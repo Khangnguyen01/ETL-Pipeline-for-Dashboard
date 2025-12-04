@@ -111,6 +111,17 @@ vars:
         value_fields: [ga_session_id]
         agg_functions: [COUNT DISTINCT]
 
+    mart_firebase:
+      - name: ad_show
+        source_layer: staging
+        has_pivot: true
+        pivot_field: placement
+        value_fields: [ event_timestamp ]
+        agg_functions: [ COUNT ]
+        WHERE_conditions:
+          - field: ad_format
+            value: 'REWARDED'
+
     mart_level_analyst:
       - name: end_level
         source_layer: staging
