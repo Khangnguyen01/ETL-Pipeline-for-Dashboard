@@ -64,12 +64,33 @@ WHERE 1=1
         {% endif %}
     {% endif %}
 )
+, total_attempt AS (
 SELECT
     s1.*,
     COUNT(s2.event_timestamp) AS total_attempts,
     COUNT(DISTINCT s2.level) AS level_start
 FROM active_day AS s1
 LEFT JOIN {{ ref('stg_start_level') }} AS s2
+    ON s1.user_pseudo_id_hashed = s2.user_pseudo_id_hashed
+    AND s1.event_date = s2.event_date
+WHERE 1=1
+    {% if is_incremental() %}
+        {% if is_backfill == 'true' %}
+            {# BACKFILL: Load specific partition #}
+            AND s2.event_date BETWEEN DATE('{{ start_date }}') AND DATE('{{ end_date }}')
+        {% else %}
+            {# SINGLE RUN / SCHEDULED: Incremental from MAX #}
+            AND s2.event_date > (SELECT MAX(event_date) FROM {{ this }})
+            AND s2.event_date <= CURRENT_DATE()-1
+        {% endif %}
+    {% endif %}
+GROUP BY ALL
+)
+SELECT
+    s1.*,
+    COUNT(CASE WHEN ad_formats2.event_timestamp) AS total_attempts,
+FROM total_attempt AS s1
+LEFT JOIN {{ ref('stg_af_rewarded') }} AS s2
     ON s1.user_pseudo_id_hashed = s2.user_pseudo_id_hashed
     AND s1.event_date = s2.event_date
 WHERE 1=1

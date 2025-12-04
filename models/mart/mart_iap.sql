@@ -55,12 +55,15 @@ WITH iap_event AS (
     'iap_show' AS event_name,
     version,
     placement,
-    REPLACE(pack_name, ',', '') AS pack_name,
+    TRIM(pack) AS pack_name,
     trigger_show_type,
     show_type,
-    null AS level,
-    null AS revenue
+    NULL AS level,
+    NULL AS revenue
   FROM {{ ref('stg_iap_show') }}
+  CROSS JOIN UNNEST(
+    SPLIT(IFNULL(pack_name, ''), ',')
+  ) AS pack
   WHERE 1=1
     {% if is_incremental() %}
         {% if is_backfill == 'true' %}
@@ -144,7 +147,6 @@ GROUP BY
     ON s1.user_pseudo_id_hashed = s2.user_pseudo_id_hashed
   QUALIFY ROW_NUMBER() OVER(PARTITION BY s2.user_pseudo_id_hashed ORDER BY s2.event_timestamp DESC) = 1
 )
-
 SELECT
   s1.*,
   s2.firebase_exp
