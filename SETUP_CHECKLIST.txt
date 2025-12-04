@@ -1,0 +1,247 @@
+```
+╔══════════════════════════════════════════════════════════════════════╗
+║                                                                      ║
+║    🚀 ETL PIPELINE SETUP CHECKLIST                                  ║
+║                                                                      ║
+║    Follow these steps to get your pipeline running                  ║
+║                                                                      ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+
+┌─────────────────────────────────────────────────────────────────────┐
+│  STEP 1: PREREQUISITES                                              │
+└─────────────────────────────────────────────────────────────────────┘
+
+  [ ] Docker Desktop installed and running
+      → Download: https://www.docker.com/products/docker-desktop
+
+  [ ] Google Cloud Project with BigQuery enabled
+      → Console: https://console.cloud.google.com
+
+  [ ] Git installed (for cloning)
+      → Download: https://git-scm.com/downloads
+
+
+┌─────────────────────────────────────────────────────────────────────┐
+│  STEP 2: CLONE REPOSITORY                                           │
+└─────────────────────────────────────────────────────────────────────┘
+
+  [ ] Open terminal/command prompt
+
+  [ ] Run:
+      git clone https://github.com/Khangnguyen01/ETL-Pipeline-for-Dashboard.git
+
+  [ ] Navigate to folder:
+      cd ETL-Pipeline-for-Dashboard
+
+
+┌─────────────────────────────────────────────────────────────────────┐
+│  STEP 3: GET GCP SERVICE ACCOUNT KEY                                │
+└─────────────────────────────────────────────────────────────────────┘
+
+  [ ] Go to: https://console.cloud.google.com
+
+  [ ] Navigate: IAM & Admin → Service Accounts
+
+  [ ] Create or select service account
+
+  [ ] Grant roles:
+      [ ] BigQuery Data Editor
+      [ ] BigQuery Job User
+      [ ] BigQuery Read Session User
+
+  [ ] Download JSON key:
+      - Click service account
+      - Go to "Keys" tab
+      - Add Key → Create New Key → JSON
+      - Download file
+
+  [ ] Rename downloaded file to:
+      application_default_credentials.json
+
+  [ ] Move file to project root:
+      ETL-Pipeline-for-Dashboard/
+      └── application_default_credentials.json  ← HERE
+
+
+┌─────────────────────────────────────────────────────────────────────┐
+│  STEP 4: CONFIGURE PROJECT ID                                       │
+└─────────────────────────────────────────────────────────────────────┘
+
+  [ ] Open file: profiles.yml
+
+  [ ] Find line 7 (approximately):
+      project: wool-away
+
+  [ ] Replace with YOUR GCP project ID:
+      project: your-project-id  # ← Your GCP project ID here
+
+  [ ] Save file
+
+  [ ] (Optional) Create .env file:
+      - Copy .env.example to .env
+      - Update GCP_PROJECT_ID=your-project-id
+
+
+┌─────────────────────────────────────────────────────────────────────┐
+│  STEP 5: VERIFY FILES                                               │
+└─────────────────────────────────────────────────────────────────────┘
+
+  Confirm you have these files:
+
+  [ ] ✅ application_default_credentials.json (in project root)
+  [ ] ✅ profiles.yml (updated with your project ID)
+  [ ] ✅ docker-compose.yml (already in repo)
+  [ ] ✅ Dockerfile (already in repo)
+
+
+┌─────────────────────────────────────────────────────────────────────┐
+│  STEP 6: LAUNCH DOCKER                                              │
+└─────────────────────────────────────────────────────────────────────┘
+
+  [ ] Make sure Docker Desktop is running
+
+  [ ] Open terminal in project folder
+
+  [ ] Run:
+      docker-compose up -d
+
+  [ ] Wait 2-3 minutes for initialization
+
+  [ ] Check status:
+      docker-compose ps
+
+  [ ] All services should show "healthy" or "running"
+
+
+┌─────────────────────────────────────────────────────────────────────┐
+│  STEP 7: ACCESS AIRFLOW UI                                          │
+└─────────────────────────────────────────────────────────────────────┘
+
+  [ ] Open browser
+
+  [ ] Navigate to: http://localhost:8080
+
+  [ ] Login with:
+      Username: airflow
+      Password: airflow
+
+  [ ] You should see Airflow dashboard with DAGs
+
+
+┌─────────────────────────────────────────────────────────────────────┐
+│  STEP 8: RUN YOUR FIRST PIPELINE                                    │
+└─────────────────────────────────────────────────────────────────────┘
+
+  [ ] In Airflow UI, find DAG: dbt_pipeline
+
+  [ ] Click the ▶ play button (Trigger DAG)
+
+  [ ] Leave config empty: {}
+
+  [ ] Click "Trigger"
+
+  [ ] Watch tasks turn green ✅
+
+  [ ] Check logs if needed (click on task → Log)
+
+
+┌─────────────────────────────────────────────────────────────────────┐
+│  STEP 9: VERIFY SUCCESS                                             │
+└─────────────────────────────────────────────────────────────────────┘
+
+  [ ] All tasks in Airflow show green checkmarks ✅
+
+  [ ] Go to BigQuery Console: https://console.cloud.google.com/bigquery
+
+  [ ] Check datasets created:
+      [ ] dev.staging (70+ tables)
+      [ ] dev.mart (7+ tables)
+
+  [ ] Run test query:
+      SELECT * FROM `your-project.dev.mart.mart_overview` LIMIT 10
+
+  [ ] Data should be visible
+
+
+┌─────────────────────────────────────────────────────────────────────┐
+│  🎉 SUCCESS!                                                         │
+└─────────────────────────────────────────────────────────────────────┘
+
+  Your ETL pipeline is now running!
+
+  Next steps:
+  - Explore the generated tables in BigQuery
+  - Connect to your dashboard tool (Looker, Tableau, etc.)
+  - Schedule automatic runs in Airflow
+  - Monitor data quality with Elementary reports
+
+
+  📚 Need help? Check documentation:
+
+  - QUICKSTART.md         → 3-minute quick start
+  - README.md             → Complete documentation
+  - SECRET_FILES_SETUP.md → Detailed setup guide
+  - CONFIGURATION_GUIDE.md → Advanced configuration
+
+
+┌─────────────────────────────────────────────────────────────────────┐
+│  🆘 TROUBLESHOOTING                                                  │
+└─────────────────────────────────────────────────────────────────────┘
+
+  ❌ Docker won't start
+     → Open Docker Desktop
+     → Increase memory to 8GB+ (Settings → Resources)
+
+  ❌ Permission denied on credentials file
+     → chmod 600 application_default_credentials.json
+
+  ❌ Project not found in BigQuery
+     → Update profiles.yml with correct project ID
+     → Make sure service account has access
+
+  ❌ DAG not showing in Airflow
+     → Wait 2-3 minutes
+     → Refresh browser
+     → Check logs: docker-compose logs airflow-scheduler
+
+  ❌ Tasks failing
+     → Click on failed task in Airflow
+     → View logs
+     → Check BigQuery permissions
+     → Verify credentials file is valid JSON
+
+
+┌─────────────────────────────────────────────────────────────────────┐
+│  📞 USEFUL COMMANDS                                                  │
+└─────────────────────────────────────────────────────────────────────┘
+
+  # View all container logs
+  docker-compose logs -f
+
+  # View specific service logs
+  docker-compose logs -f airflow-scheduler
+
+  # Check container status
+  docker-compose ps
+
+  # Restart all services
+  docker-compose restart
+
+  # Stop all services
+  docker-compose down
+
+  # Rebuild and start
+  docker-compose up -d --build
+
+  # Enter container for debugging
+  docker exec -it <container-name> bash
+
+
+═══════════════════════════════════════════════════════════════════════
+
+  Ready to start? Begin with STEP 1! 🚀
+
+═══════════════════════════════════════════════════════════════════════
+```
+
