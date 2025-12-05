@@ -67,11 +67,11 @@ WHERE s2.ad_format = 'REWARDED'
     {% if is_incremental() %}
         {% if is_backfill == 'true' %}
             {# BACKFILL: Load specific partition #}
-            AND s1.event_date BETWEEN DATE('{{ start_date }}') AND DATE('{{ end_date }}')
+            AND s2.event_date BETWEEN DATE('{{ start_date }}') AND DATE('{{ end_date }}')
         {% else %}
             {# SINGLE RUN / SCHEDULED: Incremental from MAX #}
-            AND s1.event_date > (SELECT MAX(event_date) FROM {{ this }})
-            AND s1.event_date <= CURRENT_DATE()-1
+            AND s2.event_date > (SELECT MAX(event_date) FROM {{ this }})
+            AND s2.event_date <= CURRENT_DATE()-1
         {% endif %}
     {% endif %}
 GROUP BY ALL
